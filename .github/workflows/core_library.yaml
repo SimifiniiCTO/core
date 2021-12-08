@@ -14,5 +14,5 @@ jobs:
         with:
           args: make run-tests
       - name: Setup test env. and run database tests
-        working-directory: ./core/core-database
+        working-directory: ./core-database
         run: make test

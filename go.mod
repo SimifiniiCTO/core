@@ -10,6 +10,7 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/lib/pq v1.10.4
 	github.com/mwitkow/go-proto-validators v0.3.2
+	github.com/newrelic/newrelic-telemetry-sdk-go v0.8.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.28.0

@@ -23,6 +23,14 @@ import (
 	"github.com/newrelic/newrelic-telemetry-sdk-go/telemetry"
 )
 
+type ctxKeyType struct{}
+
+var (
+	// TransactionContextKey is the key used for newrelic.FromContext and
+	// newrelic.NewContext.
+	TransactionContextKey = ctxKeyType(struct{}{})
+)
+
 // ServiceMetricsEngine encapsulates the registration functionality as well as the facility to emit metrics to
 // the new relic platform for observance
 type ServiceMetricsEngine struct {

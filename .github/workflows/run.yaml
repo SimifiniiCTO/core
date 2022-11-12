@@ -60,20 +60,20 @@ jobs:
           buildkitd-flags: "--debug"
       - name: Query Prvate repo
         run: |
-          gh api --header 'Accept: application/vnd.github.v3+json' --method GET /repos/SimifiniiCTO/simfiny-social-service
+          gh api --header 'Accept: application/vnd.github.v3+json' --method GET /repos/SimifiniiCTO/core
       - uses: ./.github/actions/release-notes
       - name: Generate release notes
         run: |
           echo 'CHANGELOG' > /tmp/release.txt
-          export GITHUB_TOKEN=${{ secrets.SIMFINY_PERSONAL_TOKEN }}
-          github-release-notes -org SimifiniiCTO -repo simfiny-social-service -since-latest-release >> /tmp/release.txt
+          export GITHUB_TOKEN=${{ secrets.TOKEN }}
+          github-release-notes -org SimifiniiCTO -repo core -since-latest-release >> /tmp/release.txt
       - name: Publish release
         uses: goreleaser/goreleaser-action@v3
         with:
           version: latest
           args: release --release-notes=/tmp/release.txt --skip-validate --rm-dist
         env:
-          GITHUB_TOKEN: ${{ secrets.SIMFINY_PERSONAL_TOKEN }} #${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }} #${{ secrets.GITHUB_TOKEN }}
 
   bump-tags:
     needs: [checks, release-notes]

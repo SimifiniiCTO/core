@@ -1,2 +1,6 @@
 gomod:
   proxy: true
+
+# .goreleaser.yaml
+builds:
+- skip: true

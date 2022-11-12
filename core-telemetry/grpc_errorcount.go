@@ -22,7 +22,7 @@ func (c *Telemetry) ErrorCountUnaryServerInterceptor() grpc.UnaryServerIntercept
 
 		if err != nil {
 			opStatusCode = codes.Internal
-			c.Engine.RecordCounterMetric(c.Metrics.ErrorCountMetric, fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
+			c.Engine.recordCounterMetric(c.Metrics.ErrorCountMetric, fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
 		}
 
 		return resp, err
@@ -43,7 +43,7 @@ func (c *Telemetry) ErrorCountStreamServerInterceptor() grpc.StreamServerInterce
 
 		if err != nil {
 			opStatusCode = codes.Internal
-			c.Engine.RecordCounterMetric(c.Metrics.ErrorCountMetric, fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
+			c.Engine.recordCounterMetric(c.Metrics.ErrorCountMetric, fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
 		}
 
 		return err

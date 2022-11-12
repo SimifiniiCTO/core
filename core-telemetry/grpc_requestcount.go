@@ -24,7 +24,7 @@ func (c *Telemetry) RequestCountUnaryServerInterceptor() grpc.UnaryServerInterce
 			opStatusCode = codes.Internal
 		}
 
-		c.Engine.RecordRequestCountMetric(fmt.Sprintf("%s-%s", method, path), *c.Engine.ServiceName, code.Code(opStatusCode))
+		c.Engine.RecordRequestCountMetric(fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
 		return resp, err
 	}
 }
@@ -45,7 +45,7 @@ func (c *Telemetry) RequestCountStreamServerInterceptor() grpc.StreamServerInter
 			opStatusCode = codes.Internal
 		}
 
-		c.Engine.RecordRequestCountMetric(fmt.Sprintf("%s-%s", method, path), *c.Engine.ServiceName, code.Code(opStatusCode))
+		c.Engine.RecordRequestCountMetric(fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
 		return err
 	}
 }

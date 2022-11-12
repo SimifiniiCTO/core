@@ -7,7 +7,7 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/code"
 )
 
-func (me *MetricsEngine) RecordDtxMetric(m *Metric, op, dest string, statusCode code.Code, start time.Duration) {
+func (me *MetricsEngine) recordDtxMetric(m *Metric, op, dest string, statusCode code.Code, start time.Duration) {
 	if !me.enabled {
 		return
 	}
@@ -29,7 +29,7 @@ func (me *MetricsEngine) RecordDtxMetric(m *Metric, op, dest string, statusCode 
 	})
 }
 
-func (me *MetricsEngine) RecordLatencyMetric(m *Metric, op, dest string, start time.Duration) {
+func (me *MetricsEngine) recordLatencyMetric(m *Metric, op, dest string, start time.Duration) {
 	if !me.enabled {
 		return
 	}
@@ -52,7 +52,7 @@ func (me *MetricsEngine) RecordLatencyMetric(m *Metric, op, dest string, start t
 	})
 }
 
-func (me *MetricsEngine) RecordCounterMetric(m *Metric, op string, statusCode code.Code) {
+func (me *MetricsEngine) recordCounterMetric(m *Metric, op string, statusCode code.Code) {
 	if !me.enabled {
 		return
 	}
@@ -72,7 +72,7 @@ func (me *MetricsEngine) RecordCounterMetric(m *Metric, op string, statusCode co
 	})
 }
 
-func (me *MetricsEngine) RecordOpCounterMetric(m *Metric, op string) {
+func (me *MetricsEngine) recordOpCounterMetric(m *Metric, op string) {
 	if !me.enabled {
 		return
 	}
@@ -91,7 +91,7 @@ func (me *MetricsEngine) RecordOpCounterMetric(m *Metric, op string) {
 	})
 }
 
-func (me *MetricsEngine) RecordErrorMetric(m *Metric, op, msg string, timeOfOccurence time.Time) {
+func (me *MetricsEngine) recordErrorMetric(m *Metric, op, msg string, timeOfOccurence time.Time) {
 	if !me.enabled {
 		return
 	}
@@ -112,7 +112,7 @@ func (me *MetricsEngine) RecordErrorMetric(m *Metric, op, msg string, timeOfOccu
 	})
 }
 
-func (me *MetricsEngine) RecordSummaryMetric(m *Metric, op, dest string) {
+func (me *MetricsEngine) recordSummaryMetric(m *Metric, op, dest string) {
 	if !me.enabled {
 		return
 	}
@@ -132,7 +132,7 @@ func (me *MetricsEngine) RecordSummaryMetric(m *Metric, op, dest string) {
 	})
 }
 
-func (me *MetricsEngine) RecordGaugeMetric(m *Metric, op string) {
+func (me *MetricsEngine) recordGaugeMetric(m *Metric, op string) {
 	if !me.enabled {
 		return
 	}

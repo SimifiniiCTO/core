@@ -18,7 +18,7 @@ func (c *Telemetry) RequestLatencyUnaryServerInterceptor() grpc.UnaryServerInter
 		method, path, _, _ := rkgrpcmid.GetGwInfo(rkgrpcctx.GetIncomingHeaders(ctx))
 		resp, err := handler(ctx, req)
 
-		c.Engine.RecordLatencyMetric(c.Metrics.RequestLatencyMetric, method, path, time.Since(start))
+		c.Engine.recordLatencyMetric(c.Metrics.RequestLatencyMetric, method, path, time.Since(start))
 		return resp, err
 	}
 }
@@ -35,7 +35,7 @@ func (c *Telemetry) RequestLatencyStreamServerInterceptor() grpc.StreamServerInt
 		method, path, _, _ := rkgrpcmid.GetGwInfo(rkgrpcctx.GetIncomingHeaders(wrappedStream.WrappedContext))
 		err := handler(srv, wrappedStream)
 
-		c.Engine.RecordLatencyMetric(c.Metrics.RequestLatencyMetric, method, path, time.Since(start))
+		c.Engine.recordLatencyMetric(c.Metrics.RequestLatencyMetric, method, path, time.Since(start))
 		return err
 	}
 }

@@ -14,10 +14,10 @@ func (me *MetricsEngine) RecordStandardDtxMetrics(op, dest string, status code.C
 		IsDatabaseTx:    false,
 		IsError:         false,
 	}, Latency)
-	me.RecordDtxMetric(me.Metrics.RequestCountMetric, *metricName, dest, status, time.Since(start))
+	me.recordDtxMetric(me.Metrics.RequestCountMetric, *metricName, dest, status, time.Since(start))
 }
 
-func (me *MetricsEngine) RecordRequestCountMetric(operation, destination string, status code.Code) {
+func (me *MetricsEngine) RecordRequestCountMetric(operation string, status code.Code) {
 	metricName := FormatMetricName(&MetricName{
 		ServiceName:     *me.ServiceName,
 		OperationName:   operation,
@@ -25,7 +25,7 @@ func (me *MetricsEngine) RecordRequestCountMetric(operation, destination string,
 		IsDatabaseTx:    false,
 		IsError:         false,
 	}, Count)
-	me.RecordCounterMetric(me.Metrics.RequestCountMetric, *metricName, status)
+	me.recordCounterMetric(me.Metrics.RequestCountMetric, *metricName, status)
 }
 
 func (me *MetricsEngine) RecordRequestLatencyMetric(operationName, destination string, start time.Time) {
@@ -36,10 +36,10 @@ func (me *MetricsEngine) RecordRequestLatencyMetric(operationName, destination s
 		IsDatabaseTx:    false,
 		IsError:         false,
 	}, Latency)
-	me.RecordLatencyMetric(me.Metrics.RequestLatencyMetric, *metricName, destination, time.Since(start))
+	me.recordLatencyMetric(me.Metrics.RequestLatencyMetric, *metricName, destination, time.Since(start))
 }
 
-func (me *MetricsEngine) RecordErrorCountMetric(operation, destination string) {
+func (me *MetricsEngine) RecordErrorCountMetric(operation string) {
 	metricName := FormatMetricName(&MetricName{
 		ServiceName:     *me.ServiceName,
 		OperationName:   operation,
@@ -47,7 +47,7 @@ func (me *MetricsEngine) RecordErrorCountMetric(operation, destination string) {
 		IsDatabaseTx:    false,
 		IsError:         true,
 	}, ErrorCount)
-	me.RecordCounterMetric(me.Metrics.ErrorCountMetric, *metricName, code.Code_INTERNAL)
+	me.recordCounterMetric(me.Metrics.ErrorCountMetric, *metricName, code.Code_INTERNAL)
 }
 
 func (me *MetricsEngine) RecordRequestStatusSummaryMetric(operation, destination string) {
@@ -58,7 +58,7 @@ func (me *MetricsEngine) RecordRequestStatusSummaryMetric(operation, destination
 		IsDatabaseTx:    false,
 		IsError:         false,
 	}, MetricSummary)
-	me.RecordSummaryMetric(me.Metrics.RequestStatusSummaryMetric, *metricName, destination)
+	me.recordSummaryMetric(me.Metrics.RequestStatusSummaryMetric, *metricName, destination)
 }
 
 func (me *MetricsEngine) RecordStandardMetrics(op string, isOperationSuccessful bool) {
@@ -69,5 +69,5 @@ func (me *MetricsEngine) RecordStandardMetrics(op string, isOperationSuccessful 
 		IsDatabaseTx:    false,
 		IsError:         isOperationSuccessful,
 	}, Count)
-	me.RecordOpCounterMetric(me.Metrics.GrpcRequestCounter, *metricName)
+	me.recordOpCounterMetric(me.Metrics.GrpcRequestCounter, *metricName)
 }

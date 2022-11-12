@@ -36,10 +36,12 @@ const (
 	DistributedTx2PhaseCommitNamespace Namespace = "dtx.2phase_commit.namespace"
 	DistributedTxTccNamespace          Namespace = "dtx.tcc.namespace"
 	ServiceNamespace                   Namespace = "service.namespace"
+	DatabaseNamespace                  Namespace = "database.namespace"
 )
 
 const (
 	GrpcSubSystem       Subsystem = "grpc.subsystem"
 	ThirdPartySubSystem Subsystem = "thirdparty.subsystem"
 	ErrorSubSystem      Subsystem = "error.subsystem"
+	DbSubSystem         Subsystem = "database.subsystem"
 )

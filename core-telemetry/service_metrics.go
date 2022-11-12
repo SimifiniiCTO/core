@@ -15,6 +15,20 @@ type ServiceMetrics struct {
 
 	// Tracks the status of all requests serviced by the service
 	RequestStatusSummaryMetric *Metric
+
+	// Tracks the number of db operations performed
+	DbOperationCounter *Metric
+
+	// Tracks the latency of various db operations
+	DbOperationLatency *Metric
+
+	// Tracks the number of grpc requests partitioned by name and status code
+	// used for monitoring and alerting (RED method)
+	GrpcRequestCounter *Metric
+
+	// Tracks the latency associated with grpc requests partitioned by service name, target name,
+	// status code, and latency
+	GrpcRequestLatency *Metric
 }
 
 var (
@@ -33,5 +47,9 @@ func newServiceMetrics(serviceName *string) (*ServiceMetrics, error) {
 		RequestLatencyMetric:       newRequestLatencyMetric(serviceName),
 		ErrorCountMetric:           newErrorCountMetric(serviceName),
 		RequestStatusSummaryMetric: newRequestStatusSummaryMetric(serviceName),
+		DbOperationCounter:         newDbOperationCounter(*serviceName),
+		DbOperationLatency:         newDbOperationLatency(*serviceName),
+		GrpcRequestCounter:         newGrpcRequestCounter(*serviceName),
+		GrpcRequestLatency:         newGrpcRequestLatency(*serviceName),
 	}, nil
 }

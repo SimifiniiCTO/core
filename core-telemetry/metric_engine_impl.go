@@ -25,3 +25,7 @@ func (me *MetricsEngine) RecordErrorCountMetric(operation, destination string) {
 func (me *MetricsEngine) RecordRequestStatusSummaryMetric(operation, destination string) {
 	me.RecordSummaryMetric(me.Metrics.RequestStatusSummaryMetric, operation, destination)
 }
+
+func (me *MetricsEngine) RecordStandardMetrics(op string, isOperationSuccessful bool) {
+	me.RecordOpCounterMetric(me.Metrics.GrpcRequestCounter, op)
+}

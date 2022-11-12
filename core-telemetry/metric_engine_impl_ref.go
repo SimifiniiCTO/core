@@ -72,6 +72,25 @@ func (me *MetricsEngine) RecordCounterMetric(m *Metric, op string, statusCode co
 	})
 }
 
+func (me *MetricsEngine) RecordOpCounterMetric(m *Metric, op string) {
+	if !me.enabled {
+		return
+	}
+
+	if !me.validateMetricEngine() {
+		me.logger.Panic("unable to emit metrics due to misconfiguration")
+	}
+
+	mHandle := me.Core.Havester.MetricAggregator()
+	mHandle.Count(m.MetricName, map[string]interface{}{
+		"service.source":    m.ServiceName,
+		"service.operation": op,
+		"metric.help":       m.Help,
+		"metric.namespace":  m.Namespace,
+		"metric.subsystem":  m.Subsystem,
+	})
+}
+
 func (me *MetricsEngine) RecordErrorMetric(m *Metric, op, msg string, timeOfOccurence time.Time) {
 	if !me.enabled {
 		return

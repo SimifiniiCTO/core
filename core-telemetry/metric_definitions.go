@@ -11,7 +11,7 @@ func newRequestCountMetric(serviceName *string) *Metric {
 		MetricName:  fmt.Sprintf("%s.grpc.request.count", *serviceName),
 		ServiceName: *serviceName,
 		Help:        "Tracks the number of request serviced by the service partitioned by name and status code",
-		Subsystem:   GrpcSubSystem,
+		Subsystem:   Subsystem(GrpcSubSystem),
 		Namespace:   RequestNamespace,
 	}
 }
@@ -25,7 +25,7 @@ func newRequestLatencyMetric(serviceName *string) *Metric {
 		MetricName:  fmt.Sprintf("%s.grpc.request.latency", *serviceName),
 		ServiceName: *serviceName,
 		Help:        "Tracks the latency associated with various requests partitioned by service name, target name, status code, and latency",
-		Subsystem:   GrpcSubSystem,
+		Subsystem:   Subsystem(GrpcSubSystem),
 		Namespace:   RequestNamespace,
 	}
 }
@@ -36,7 +36,7 @@ func newErrorCountMetric(serviceName *string) *Metric {
 		MetricName:  fmt.Sprintf("%s.error.count", *serviceName),
 		ServiceName: *serviceName,
 		Help:        "Tracks the number of errors encountered by the service",
-		Subsystem:   ErrorSubSystem,
+		Subsystem:   Subsystem(ErrorSubSystem),
 		Namespace:   ServiceNamespace,
 	}
 }
@@ -51,6 +51,50 @@ func newRequestStatusSummaryMetric(serviceName *string) *Metric {
 		ServiceName: *serviceName,
 		Help:        "Tracks the status of all requests serviced by the service",
 		Subsystem:   Subsystem(RequestNamespace),
+		Namespace:   RequestNamespace,
+	}
+}
+
+// NewDbOperationCounter instantiates a new metric around tracking the number of db requests made by the service
+func newDbOperationCounter(serviceName string) *Metric {
+	return &Metric{
+		MetricName:  fmt.Sprintf("%s.db.operation.counter", serviceName),
+		ServiceName: serviceName,
+		Help:        "Tracks the number of db tx processed by the service",
+		Subsystem:   Subsystem(DbSubSystem),
+		Namespace:   DatabaseNamespace,
+	}
+}
+
+// NewGrpcRequestLatency instantiates a new metric object around tracking the latency associated with various gRPC operations
+func newDbOperationLatency(serviceName string) *Metric {
+	return &Metric{
+		MetricName:  fmt.Sprintf("%s.db.operation.latency", serviceName),
+		ServiceName: serviceName,
+		Help:        "Tracks the latency of all db tx performed by the service.",
+		Subsystem:   Subsystem(DbSubSystem),
+		Namespace:   DatabaseNamespace,
+	}
+}
+
+// NewGrpcRequestCounter instantiates a new metric around tracking the number of grpc requests made by the service
+func newGrpcRequestCounter(serviceName string) *Metric {
+	return &Metric{
+		MetricName:  fmt.Sprintf("%s.grpc.request.counter", serviceName),
+		ServiceName: serviceName,
+		Help:        "Tracks the number of grpc requests processed by the service. Partitioned by status code and operation",
+		Subsystem:   Subsystem(GrpcSubSystem),
+		Namespace:   RequestNamespace,
+	}
+}
+
+// NewGrpcRequestLatency instantiates a new metric object around tracking the latency associated with various gRPC operations
+func newGrpcRequestLatency(serviceName string) *Metric {
+	return &Metric{
+		MetricName:  fmt.Sprintf("%s.grpc.request.latency", serviceName),
+		ServiceName: serviceName,
+		Help:        "Tracks the latency of all outgoing grpc requests initiated by the service. Partitioned by status code and operation",
+		Subsystem:   Subsystem(GrpcSubSystem),
 		Namespace:   RequestNamespace,
 	}
 }

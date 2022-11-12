@@ -9,6 +9,13 @@ import (
 
 type MetricType string
 
+const (
+	Count         MetricType = "count"
+	ErrorCount    MetricType = "error_count"
+	Latency       MetricType = "latency"
+	MetricSummary MetricType = "summary"
+)
+
 var (
 	OperationLatencyMetric MetricType = "service.operation.latency"
 	OperationStatusMetric  MetricType = "service.operation.status"

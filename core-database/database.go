@@ -2,6 +2,7 @@ package core_database
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -11,30 +12,51 @@ import (
 )
 
 type DatabaseConn struct {
-	Engine            *gorm.DB
-	ConnectionTimeout time.Duration
+	Engine                    *gorm.DB
+	QueryTimeout              *time.Duration
+	MaxConnectionRetries      *int
+	MaxConnectionRetryTimeout *time.Duration
+	RetrySleep                *time.Duration
+	ConnectionString          *string
+}
+
+type Parameters struct {
+	QueryTimeout              *time.Duration
+	MaxConnectionRetries      *int
+	MaxConnectionRetryTimeout *time.Duration
+	RetrySleep                *time.Duration
+	ConnectionString          *string
 }
 
 // NewDatabaseConn obtains a reference to a database connection object
-func NewDatabaseConn(connString, databaseType string, connectionTimeout time.Duration) *DatabaseConn {
-	if connString == "" {
-		// crash the process
+func NewDatabaseConn(params *Parameters) *DatabaseConn {
+	if err := validateParams(params); err != nil {
 		os.Exit(1)
 	}
 
-	conn, err := Connect(connString, databaseType)
+	conn, err := Connect(params)
 	if err != nil {
 		panic("failed to connect to database")
 	}
 
 	return &DatabaseConn{
-		Engine:            conn,
-		ConnectionTimeout: connectionTimeout,
+		Engine:                    conn,
+		QueryTimeout:              params.QueryTimeout,
+		MaxConnectionRetries:      params.MaxConnectionRetries,
+		MaxConnectionRetryTimeout: params.MaxConnectionRetryTimeout,
+		RetrySleep:                params.RetrySleep,
+		ConnectionString:          params.ConnectionString,
 	}
 }
 
 // Connect attempts to connect to the database using retries
-func Connect(connectionString, databaseType string) (*gorm.DB, error) {
+func Connect(params *Parameters) (*gorm.DB, error) {
+	var (
+		connectionString     = *params.ConnectionString
+		maxConnectionRetries = *params.MaxConnectionRetries
+		maxRetryTimeout      = *params.MaxConnectionRetryTimeout
+		retrySleepInterval   = *params.RetrySleep
+	)
 	var connection = make(chan *gorm.DB, 1)
 
 	err := retry.Do(
@@ -45,9 +67,9 @@ func Connect(connectionString, databaseType string) (*gorm.DB, error) {
 				return err
 			}
 		}(connection),
-		retry.MaxTries(5),
-		retry.Timeout(time.Second*10),
-		retry.Sleep(1*time.Second),
+		retry.MaxTries(maxConnectionRetries),
+		retry.Timeout(maxRetryTimeout),
+		retry.Sleep(retrySleepInterval),
 	)
 
 	if err != nil {
@@ -55,4 +77,16 @@ func Connect(connectionString, databaseType string) (*gorm.DB, error) {
 	}
 
 	return <-connection, nil
+}
+
+func validateParams(params *Parameters) error {
+	if params == nil {
+		return fmt.Errorf("invalid input argument, param cannot be nil")
+	}
+
+	if params.ConnectionString == nil || params.MaxConnectionRetries == nil || params.MaxConnectionRetryTimeout == nil || params.QueryTimeout == nil {
+		return fmt.Errorf("invalid input argument")
+	}
+
+	return nil
 }

@@ -14,21 +14,31 @@ import (
 )
 
 var (
-	dbConn       *core_database.DatabaseConn
-	databaseType = "postgres"
-	host         = "localhost"
-	port         = 5433
-	user         = "postgres"
-	password     = "postgres"
-	dbname       = "postgres"
-	globalCtx    = context.TODO()
+	dbConn    *core_database.DatabaseConn
+	host      = "localhost"
+	port      = 5433
+	user      = "postgres"
+	password  = "postgres"
+	dbname    = "postgres"
+	globalCtx = context.TODO()
 )
 
 func init() {
 	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 		host, user, password, dbname, port)
 
-	dbConn = core_database.NewDatabaseConn(connectionString, databaseType, 500*time.Millisecond)
+	queryTimeout := 10 * time.Second
+	maxConnectionRetries := 5
+	maxConnectionRetryTimeout := 10 * time.Second
+	retrySleep := 1 * time.Second
+
+	dbConn = core_database.NewDatabaseConn(&core_database.Parameters{
+		QueryTimeout:              &queryTimeout,
+		MaxConnectionRetries:      &maxConnectionRetries,
+		MaxConnectionRetryTimeout: &maxConnectionRetryTimeout,
+		ConnectionString:          &connectionString,
+		RetrySleep:                &retrySleep,
+	})
 }
 
 // TestTransaction Tests the result of a transaction

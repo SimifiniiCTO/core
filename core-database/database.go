@@ -11,11 +11,12 @@ import (
 )
 
 type DatabaseConn struct {
-	Engine *gorm.DB
+	Engine            *gorm.DB
+	ConnectionTimeout time.Duration
 }
 
 // NewDatabaseConn obtains a reference to a database connection object
-func NewDatabaseConn(connString, databaseType string) *DatabaseConn {
+func NewDatabaseConn(connString, databaseType string, connectionTimeout time.Duration) *DatabaseConn {
 	if connString == "" {
 		// crash the process
 		os.Exit(1)
@@ -26,7 +27,10 @@ func NewDatabaseConn(connString, databaseType string) *DatabaseConn {
 		panic("failed to connect to database")
 	}
 
-	return &DatabaseConn{Engine: conn}
+	return &DatabaseConn{
+		Engine:            conn,
+		ConnectionTimeout: connectionTimeout,
+	}
 }
 
 // Connect attempts to connect to the database using retries

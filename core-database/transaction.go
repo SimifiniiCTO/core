@@ -17,8 +17,11 @@ type CmplxTx func(ctx context.Context, tx *gorm.DB) (interface{}, error)
 // if unsuccessful or any error is raised throughout the transaction, then, the transaction
 // is rolled back. Returned is any error occuring throughout the transaction lifecycle
 func (db *DatabaseConn) PerformTransaction(ctx context.Context, transaction Tx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), db.ConnectionTimeout)
+	defer cancel()
+
 	f := func(tx *gorm.DB) error {
-		return transaction(ctx, tx)
+		return transaction(ctx, tx.WithContext(ctx))
 	}
 
 	return db.Engine.Transaction(f)
@@ -30,7 +33,10 @@ func (db *DatabaseConn) PerformTransaction(ctx context.Context, transaction Tx) 
 // or completely rolled back. This returns the result obtained from the invocation of the anonymous function as
 // well as any error occuring throughout the transaction lifecycle.
 func (db *DatabaseConn) PerformComplexTransaction(ctx context.Context, transaction CmplxTx) (interface{}, error) {
-	tx := db.Engine.Begin()
+	ctx, cancel := context.WithTimeout(context.Background(), db.ConnectionTimeout)
+	defer cancel()
+
+	tx := db.Engine.WithContext(ctx).Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()

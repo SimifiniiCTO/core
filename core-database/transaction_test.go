@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
@@ -27,7 +28,7 @@ func init() {
 	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 		host, user, password, dbname, port)
 
-	dbConn = core_database.NewDatabaseConn(connectionString, databaseType)
+	dbConn = core_database.NewDatabaseConn(connectionString, databaseType, 500*time.Millisecond)
 }
 
 // TestTransaction Tests the result of a transaction

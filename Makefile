@@ -37,4 +37,3 @@ run-tests:
 	@echo "----- running core-utilities tests"
 	cd ./core-utilities && go test && cd ..
 	@echo "----- running core-grpc tests"
-

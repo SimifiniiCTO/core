@@ -20,17 +20,10 @@ contracts:
 
 run-tests:
 	@echo "running core-library tests"
-	@echo "----- running core-logging tests"
-	cd ./core-logging && go test && cd ..
 	@echo "----- running core-auth-sdk tests"
 	cd ./core-auth-sdk && go test && cd ..
 	@echo "----- running core-pool tests"
 	cd ./core-pool && go test && cd ..
-	@echo "----- running core-tlsCert tests"
-	cd ./core-tlsCert && go test && cd ..
-	@echo "----- running core-tracing tests"
-	cd ./core-tracing/datadog && go test && cd ../..
-	cd ./core-tracing/jaeger && go test && cd ../..
 	@echo "----- running core-utilities tests"
 	cd ./core-utilities && go test && cd ..
 	@echo "----- running core-grpc tests"

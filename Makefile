@@ -37,3 +37,10 @@ run-tests:
 	@echo "----- running core-utilities tests"
 	cd ./core-utilities && go test && cd ..
 	@echo "----- running core-grpc tests"
+
+.PHONY: add-license
+add-license: ## Find all .go files not in the vendor directory and try to write a license notice.
+	find . -path ./vendor -prune -o -type f -name "*.go" -print | xargs ./etc/add_license.sh
+	# Check for any changes made with -G. to ignore permissions changes. Exit with a non-zero
+	# exit code if there is a diff.
+	git diff -G. --quiet

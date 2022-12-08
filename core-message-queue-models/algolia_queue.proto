@@ -14,4 +14,5 @@ message ProfileSearchMessage {
   repeated string tags = 5;
   map<string, string> extra = 6;
   string createdAt = 7;
+  string profileImageUrl = 8;
 }

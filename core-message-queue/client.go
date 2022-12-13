@@ -18,7 +18,7 @@ type MessageClientInterface interface {
 	// Sends a message to a queue
 	SendMessage(ctx context.Context, msg *sqs.SendMessageInput) (*string, error)
 	// Long polls given amount of messages from a queue.
-	Receive(ctx context.Context, queueURL string) (*Message, error)
+	Receive(ctx context.Context, queueURL string) ([]*Message, error)
 	// Deletes a message from a queue.
 	Delete(ctx context.Context, queueURL, rcvHandle string) error
 }

@@ -43,13 +43,15 @@ type HandleConfig struct {
 }
 
 type SqsQueueHandle struct {
-	Client    sqsiface.SQSAPI
-	QueueUrls *QueueUrlSet
-	timeout   time.Duration
-	Config    *HandleConfig
+	Client       sqsiface.SQSAPI
+	QueueUrls    *QueueUrlSet
+	timeout      time.Duration
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	Config       *HandleConfig
 }
 
-var _ MessageClientInterface = SqsQueueHandle{}
+var _ MessageClientInterface = (*SqsQueueHandle)(nil)
 
 // NewSQS returns a new sns client for the passed in region
 func NewClient(params *ClientParams) (SqsQueueHandle, error) {
@@ -57,8 +59,8 @@ func NewClient(params *ClientParams) (SqsQueueHandle, error) {
 		return SqsQueueHandle{}, errors.New("invalid input arguments. params cannot be nil")
 	}
 
-	if params.Region == nil || params.Endpoint == nil || params.Urls == nil {
-		return SqsQueueHandle{}, fmt.Errorf("invalid input arguments. region: %v, endpoint: %v, queueUrl: %v", params.Region, params.Endpoint, params.Urls)
+	if params.Region == nil || params.Endpoint == nil {
+		return SqsQueueHandle{}, fmt.Errorf("invalid input arguments. region: %v, endpoint: %v", params.Region, params.Endpoint)
 	}
 
 	sess, err := New(Config{
@@ -74,19 +76,16 @@ func NewClient(params *ClientParams) (SqsQueueHandle, error) {
 	}
 
 	return SqsQueueHandle{
-		Client:    sqs.New(sess),
-		QueueUrls: params.Urls,
-		Config: &HandleConfig{
-			MaxNumberOfMessages: params.MaxNumberOfMessagesToIngest,
-			MaxWaitTimeSeconds:  params.ReadOperationTimeout,
-			Attributes:          params.Attributes,
-		},
+		Client:       sqs.New(sess),
+		ReadTimeout:  *params.ReadOperationTimeout,
+		WriteTimeout: *params.WriteOperationTimeout,
+		Config:       &HandleConfig{MaxNumberOfMessages: params.MaxNumberOfMessagesToIngest, MaxWaitTimeSeconds: params.ReadOperationTimeout, Attributes: params.Attributes},
 	}, nil
 }
 
 func (h SqsQueueHandle) SendMessage(ctx context.Context, msg *sqs.SendMessageInput) (*string, error) {
-	//ctx, cancel := context.WithTimeout(ctx, h.timeout)
-	//defer cancel()
+	ctx, cancel := context.WithTimeout(ctx, h.WriteTimeout)
+	defer cancel()
 
 	res, err := h.Client.SendMessageWithContext(ctx, msg)
 	if err != nil {
@@ -96,15 +95,19 @@ func (h SqsQueueHandle) SendMessage(ctx context.Context, msg *sqs.SendMessageInp
 	return res.MessageId, nil
 }
 
-func (h SqsQueueHandle) Receive(ctx context.Context, queueURL string) (*Message, error) {
-	ctx, cancel := context.WithTimeout(ctx, h.timeout)
+func (h SqsQueueHandle) Receive(ctx context.Context, queueURL string) ([]*Message, error) {
+	ctx, cancel := context.WithTimeout(ctx, h.ReadTimeout)
 	defer cancel()
 
 	res, err := h.Client.ReceiveMessageWithContext(ctx, &sqs.ReceiveMessageInput{
-		QueueUrl:              aws.String(queueURL),
-		MaxNumberOfMessages:   aws.Int64(1),
-		WaitTimeSeconds:       aws.Int64(20),
-		MessageAttributeNames: aws.StringSlice([]string{"All"}),
+		QueueUrl:            aws.String(queueURL),
+		MaxNumberOfMessages: aws.Int64(1),
+		AttributeNames: []*string{
+			aws.String(sqs.QueueAttributeNameAll),
+		},
+		MessageAttributeNames: []*string{
+			aws.String(sqs.QueueAttributeNameAll),
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("receive: %w", err)
@@ -114,21 +117,25 @@ func (h SqsQueueHandle) Receive(ctx context.Context, queueURL string) (*Message,
 		return nil, nil
 	}
 
-	attrs := make(map[string]string)
-	for key, attr := range res.Messages[0].MessageAttributes {
-		attrs[key] = *attr.StringValue
-	}
+	messages := make([]*Message, 0)
+	for _, message := range res.Messages {
+		attrs := make(map[string]string)
+		for key, attr := range message.MessageAttributes {
+			attrs[key] = *attr.StringValue
+		}
 
-	return &Message{
-		ID:            *res.Messages[0].MessageId,
-		ReceiptHandle: *res.Messages[0].ReceiptHandle,
-		Body:          *res.Messages[0].Body,
-		Attributes:    attrs,
-	}, nil
+		messages = append(messages, &Message{
+			ID:            *message.MessageId,
+			ReceiptHandle: *message.ReceiptHandle,
+			Body:          *message.Body,
+			Attributes:    attrs,
+		})
+	}
+	return messages, nil
 }
 
 func (h SqsQueueHandle) Delete(ctx context.Context, queueURL, rcvHandle string) error {
-	ctx, cancel := context.WithTimeout(ctx, h.timeout)
+	ctx, cancel := context.WithTimeout(ctx, h.WriteTimeout)
 	defer cancel()
 
 	if _, err := h.Client.DeleteMessageWithContext(ctx, &sqs.DeleteMessageInput{
@@ -142,7 +149,7 @@ func (h SqsQueueHandle) Delete(ctx context.Context, queueURL, rcvHandle string) 
 }
 
 func (h SqsQueueHandle) Send(ctx context.Context, req *SendRequest) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, h.timeout)
+	ctx, cancel := context.WithTimeout(ctx, h.WriteTimeout)
 	defer cancel()
 
 	attrs := make(map[string]*sqs.MessageAttributeValue, len(req.Attributes))

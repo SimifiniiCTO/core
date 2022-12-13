@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package algolia_queue;
+option go_package = "github.com/SimifiniiCTO/core/core-message-queue-contracts/content_enrichment_queue";
+
+message ContentEnrichmentContract {
+  string RecordID = 1;
+  repeated string Urls = 2;
+}

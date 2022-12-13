@@ -19,7 +19,7 @@ gen-models: ## Autogen service stubs
 			-I=$(GOPATH)/src/github.com/lyft/protoc-gen-validate/validate/validate.proto \
 			-I=$(GOPATH)/src/github.com/infobloxopen/protoc-gen-gorm/options \
 			-I=$(GOPATH)/src/github.com/protobuf/src/google/protobuf/timestamp.proto \
-			algolia_queue.proto email_queue.proto --go_out=:$(GOPATH)/src --go_opt=paths=import \
+			algolia_queue.proto email_queue.proto content_enrichment_queue.proto --go_out=:$(GOPATH)/src --go_opt=paths=import \
 			--go-grpc_out=:$(GOPATH)/src --go-grpc_opt=paths=import
 
 autogen: gen-deps gen-models

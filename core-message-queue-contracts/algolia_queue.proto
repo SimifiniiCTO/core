@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package algolia_queue;
-option go_package = "github.com/SimifiniiCTO/core/core-message-queue-models/algolia_queue";
+option go_package = "github.com/SimifiniiCTO/core/core-message-queue-contracts/algolia_queue";
 
 /*
  ProfileSearchMessage: represents a profile object (community or user)

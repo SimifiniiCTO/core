@@ -1,0 +1,10 @@
+go 1.18
+
+use (
+	./core-auth-sdk
+	./core-database
+	./core-message-queue
+	./core-message-queue-contracts
+	./core-telemetry
+	./core-utilities
+)

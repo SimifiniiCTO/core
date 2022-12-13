@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package email_queue;
+option go_package = "github.com/SimifiniiCTO/core/core-message-queue-contracts/email_queue";
+
+enum EmailType {
+  PASSWORD_RESET_EMAIL = 0;
+  WELCOME_EMAIL = 1;
+  // reset email account email type
+  RESET_EMAIL = 2;
+  // invite code email type
+  INVITE_CODE = 3;
+  // system maintenance email type
+  SYSTEM_MAINTENANCE = 4;
+  // promotional email type
+  PROMOTIONAL = 5;
+}
+
+/*
+ EmailMessage: represents an email message
+*/
+message EmailMessage {
+  string from = 1;
+  string to = 2;
+  string subject = 3;
+  string userName = 4;
+  EmailType emailType = 5;
+}
+
+message EmailContract {
+  string from = 1;
+  string to = 2;
+  string subject = 3;
+  string message = 4;
+  EmailType type = 5;
+  string userName = 6;
+  Metadata metadata = 8;
+  Tokens token = 9;
+}
+
+message Tokens {
+  string accountActivationToken = 1;
+  string passwordResetToken = 2;
+  string inviteCodeToken = 3;
+}
+
+message Metadata {
+  uint32 trace_id = 1;
+  string source_service = 2;
+}

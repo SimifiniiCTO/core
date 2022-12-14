@@ -20,8 +20,8 @@ import (
 //LINK - Ref: https://docs.microsoft.com/en-us/azure/architecture/microservices/design/interservice-communication
 func (c *Consumer) ConcurrentConsumer(f MessageProcessorFunc) {
 	var (
-		message []*core_message_queue.Message
-		err     error
+		messages []*core_message_queue.Message
+		err      error
 	)
 	sync := createFullBufferedChannel(c.ConcurrencyFactor)
 	for {

@@ -3,14 +3,14 @@ module github.com/SimifiniiCTO/core/core-message-consumer
 go 1.18
 
 require (
-	github.com/SimifiniiCTO/core/core-message-queue v0.0.0-20221208070100-811cf6cf3849
-	github.com/SimifiniiCTO/core/core-telemetry v0.0.0-20221208070100-811cf6cf3849
+	github.com/SimifiniiCTO/core/core-message-queue v0.0.0-20221213075324-a884ef6ce736
+	github.com/SimifiniiCTO/core/core-telemetry v0.0.0-20221213075324-a884ef6ce736
 	github.com/newrelic/go-agent/v3 v3.20.1
 	go.uber.org/zap v1.24.0
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.44.154 // indirect
+	github.com/aws/aws-sdk-go v1.44.158 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/gobuffalo/here v0.6.0 // indirect

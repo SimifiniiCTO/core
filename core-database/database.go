@@ -45,6 +45,23 @@ func NewDatabaseConn(params *Parameters) *DatabaseConn {
 		panic("failed to connect to database")
 	}
 
+	// Get generic database object sql.DB to use its functions
+	sqlDB, err := conn.DB()
+	if err != nil {
+		panic("failed to obtain generic db connection")
+	}
+
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	// TODO: Make this a configurable value
+	sqlDB.SetMaxIdleConns(10)
+
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	// TODO: Make this a configurable value
+	sqlDB.SetMaxOpenConns(100)
+
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
 	return &DatabaseConn{
 		Engine:                    conn,
 		QueryTimeout:              params.QueryTimeout,

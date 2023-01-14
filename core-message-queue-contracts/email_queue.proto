@@ -25,6 +25,9 @@ message EmailMessage {
   string subject = 3;
   string userName = 4;
   EmailType emailType = 5;
+  string firstName = 6;
+  string lastName = 7;
+  string verificationAddress = 8;
 }
 
 message EmailContract {
@@ -32,8 +35,9 @@ message EmailContract {
   string to = 2;
   string subject = 3;
   string message = 4;
-  EmailType type = 5;
+  EmailType emailType = 5;
   string userName = 6;
+  string firstName = 7;
   Metadata metadata = 8;
   Tokens token = 9;
 }

@@ -29,6 +29,8 @@ message EmailMessage {
   string lastName = 7;
   string verificationAddress = 8;
   string userID = 9;
+  int32 passwordResetAuthnID = 10;
+  string passwordResetToken = 11;
 }
 
 message EmailContract {

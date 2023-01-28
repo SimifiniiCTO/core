@@ -1,5 +1,5 @@
-gomod:
-  proxy: true
+#gomod:
+#  proxy: true
 
 # .goreleaser.yaml
 builds:

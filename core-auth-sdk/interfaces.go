@@ -45,4 +45,10 @@ type AuthService interface {
 	SignupAccount(username, password string) (string, error)
 	// LogOutAccount Remove a session associated with a given user account
 	LogOutAccount() error
+	// RequestPasswordReset provides business logic to request to reset a given password
+	RequestPasswordReset(username string) error
+	// ResetPassword enables a new password change while logged out
+	ResetPassword(password, token string) (string, error)
+	// ChangePassword enables a client to change a given password while authenticated
+	ChangePassword(newPassword, currentPassword string) (string, error)
 }

@@ -92,7 +92,7 @@ func (ic *internalClient) Key(kid string) ([]jose.JSONWebKey, error) {
 	return jwks.Key(kid), nil
 }
 
-//GetAccount gets the account details for the specified account id
+// GetAccount gets the account details for the specified account id
 func (ic *internalClient) GetAccount(id string) (*Account, error) {
 	resp, err := ic.doWithAuth(get, "accounts/"+id, nil)
 	if err != nil {
@@ -112,7 +112,7 @@ func (ic *internalClient) GetAccount(id string) (*Account, error) {
 	return &data.Result, nil
 }
 
-//Update updates the account with the specified id
+// Update updates the account with the specified id
 func (ic *internalClient) Update(id, username string) error {
 	form := url.Values{}
 	form.Add("username", username)
@@ -243,6 +243,75 @@ func (ic *internalClient) ExpirePassword(id string) error {
 	return err
 }
 
+// RequestPasswordReset initiates a password reset
+func (ic *internalClient) RequestPasswordReset(username string) error {
+	passwordResetUrl := fmt.Sprintf("password/reset?username=%s", username)
+	_, err := ic.doWithNoAuth(get, passwordResetUrl, nil)
+	return err
+}
+
+// ResetPassword changes a password given token
+func (ic *internalClient) ResetPassword(password, token string) (string, error) {
+	form := url.Values{}
+	form.Add("password", password)
+	form.Add("token", token)
+
+	response, err := ic.doWithNoAuth(post, "password", strings.NewReader(form.Encode()))
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+
+	responseBody, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+
+	data := struct {
+		Result struct {
+			Token string `json:"id_token"`
+		} `json:"result"`
+	}{}
+
+	err = json.Unmarshal(responseBody, &data)
+	if err != nil {
+		return "", err
+	}
+
+	return data.Result.Token, nil
+}
+
+// ChangePassword changes a password given token
+func (ic *internalClient) ChangePassword(newPassword, currentPassword string) (string, error) {
+	form := url.Values{}
+	form.Add("password", newPassword)
+	form.Add("currentPassword", currentPassword)
+
+	response, err := ic.doWithNoAuth(post, "password", strings.NewReader(form.Encode()))
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+
+	responseBody, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+
+	data := struct {
+		Result struct {
+			Token string `json:"id_token"`
+		} `json:"result"`
+	}{}
+
+	err = json.Unmarshal(responseBody, &data)
+	if err != nil {
+		return "", err
+	}
+
+	return data.Result.Token, nil
+}
+
 // ServiceStats returns the raw request from the /stats endpoint
 func (ic *internalClient) ServiceStats() (*http.Response, error) {
 	return ic.doWithAuth(get, "stats", nil)
@@ -284,6 +353,34 @@ func (ic *internalClient) doWithAuth(verb string, path string, body io.Reader) (
 	}
 	req.SetBasicAuth(ic.username, ic.password)
 	req.Header.Set("Origin", ic.origin)
+
+	if verb == post || verb == patch || verb == put {
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	}
+
+	resp, err := ic.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if !isStatusSuccess(resp.StatusCode) {
+		// try to parse the error response
+		var errResp ErrorResponse
+		if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+			return nil, fmt.Errorf("received %d from %s", resp.StatusCode, ic.absoluteURL(path))
+		}
+
+		errResp.StatusCode = resp.StatusCode
+		errResp.URL = ic.absoluteURL(path)
+		return nil, &errResp
+	}
+	return resp, nil
+}
+
+func (ic *internalClient) doWithNoAuth(verb string, path string, body io.Reader) (*http.Response, error) {
+	req, err := retryablehttp.NewRequest(verb, ic.absoluteURL(path), body)
+	if err != nil {
+		return nil, err
+	}
 
 	if verb == post || verb == patch || verb == put {
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")

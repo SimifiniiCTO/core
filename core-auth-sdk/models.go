@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-//Account is an AuthN user account
+// Account is an AuthN user account
 type Account struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
@@ -19,7 +19,7 @@ type Account struct {
 	Deleted  bool   `json:"deleted"`
 }
 
-//LoginResponse serves as the response to the login request
+// LoginResponse serves as the response to the login request
 type LoginResponse struct {
 	Result IdResult `json:"result"`
 }

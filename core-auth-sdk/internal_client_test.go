@@ -65,7 +65,7 @@ func testingHTTPClient(handler http.Handler) (*retryablehttp.Client, func()) {
 	return retryClient, s.Close
 }
 
-//Based on information at https://keratin.github.io/authn-server/#/api?id=get-account
+// Based on information at https://keratin.github.io/authn-server/#/api?id=get-account
 func TestICGetAccount(t *testing.T) {
 	type request struct {
 		url        string
@@ -158,7 +158,7 @@ func TestICGetAccount(t *testing.T) {
 	}
 }
 
-//Based on information at https://keratin.github.io/authn-server/#/api?id=update
+// Based on information at https://keratin.github.io/authn-server/#/api?id=update
 func TestICUpdate(t *testing.T) {
 	type request struct {
 		url        string
@@ -315,7 +315,7 @@ func TestICLockAccount(t *testing.T) {
 	}
 }
 
-//Based on information at https://keratin.github.io/authn-server/#/api?id=unlock-account
+// Based on information at https://keratin.github.io/authn-server/#/api?id=unlock-account
 func TestICUnlockAccount(t *testing.T) {
 	type request struct {
 		url        string
@@ -385,7 +385,7 @@ func TestICUnlockAccount(t *testing.T) {
 	}
 }
 
-//Based on information at https://keratin.github.io/authn-server/#/api?id=archive-account
+// Based on information at https://keratin.github.io/authn-server/#/api?id=archive-account
 func TestICArchiveAccount(t *testing.T) {
 	type request struct {
 		url        string
@@ -455,7 +455,7 @@ func TestICArchiveAccount(t *testing.T) {
 	}
 }
 
-//Based on information at https://keratin.github.io/authn-server/#/api?id=import-account
+// Based on information at https://keratin.github.io/authn-server/#/api?id=import-account
 func TestICImportAccount(t *testing.T) {
 	type request struct {
 		url        string
@@ -544,7 +544,7 @@ func TestICImportAccount(t *testing.T) {
 	}
 }
 
-//Based on information at https://keratin.github.io/authn-server/#/api?id=expire-password
+// Based on information at https://keratin.github.io/authn-server/#/api?id=expire-password
 func TestICExpirePassword(t *testing.T) {
 	type request struct {
 		url        string
@@ -614,7 +614,7 @@ func TestICExpirePassword(t *testing.T) {
 	}
 }
 
-//Based on information at https://keratin.github.io/authn-server/#/api?id=service-stats
+// Based on information at https://keratin.github.io/authn-server/#/api?id=service-stats
 func TestICServiceStats(t *testing.T) {
 	type request struct {
 		url        string
@@ -656,7 +656,7 @@ func TestICServiceStats(t *testing.T) {
 	}
 }
 
-//Based on information at https://keratin.github.io/authn-server/#/api?id=server-stats
+// Based on information at https://keratin.github.io/authn-server/#/api?id=server-stats
 func TestICServerStats(t *testing.T) {
 	type request struct {
 		url        string
@@ -817,6 +817,77 @@ func TestICErrorResponses(t *testing.T) {
 				}
 			}
 			// otherwise we have a retryable exception
+		}
+	}
+}
+
+func TestICChangePassword(t *testing.T) {
+	type request struct {
+		url             string
+		newPassword     string
+		currentPassword string
+	}
+	type response struct {
+		code     int
+		token    string
+		errorMsg string
+	}
+	testCases := []struct {
+		request  request
+		response response
+	}{
+		{
+			request: request{
+				url:             "http://test.com",
+				newPassword:     "newPassword",
+				currentPassword: "currentPassword",
+			},
+			response: response{
+				code:     http.StatusCreated,
+				errorMsg: "",
+			},
+		},
+		{
+			request: request{
+				url:             "http://test.com",
+				newPassword:     "newPassword",
+				currentPassword: "currentPassword",
+			},
+			response: response{
+				code:     http.StatusUnprocessableEntity,
+				errorMsg: "received 422 from http://test.com/password",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, http.MethodPost, r.Method)
+			assert.Equal(t, "/password", r.URL.Path)
+			w.WriteHeader(tc.response.code)
+			if tc.response.code == http.StatusCreated {
+				w.Write([]byte(`{
+					"result": {
+						"id_token": "1"
+					}
+				}`))
+			}
+		})
+		httpClient, teardown := testingHTTPClient(h)
+		defer teardown()
+
+		cli, err := newInternalClient(tc.request.url, "", "", origin, &defaultRetryConfigs)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cli.client = httpClient
+
+		token, err := cli.ChangePassword(tc.request.newPassword, tc.request.currentPassword)
+		if tc.response.errorMsg == "" { //Expecting no error
+			assert.Nil(t, err)
+			assert.Equal(t, token, "1")
+		} else { //Expecting an error
+			assert.Equal(t, tc.response.errorMsg, err.Error())
 		}
 	}
 }

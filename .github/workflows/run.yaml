@@ -68,7 +68,7 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.TOKEN }}
           github-release-notes -org SimifiniiCTO -repo core -since-latest-release >> /tmp/release.txt
       - name: Publish release
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v4
         with:
           version: latest
           args: release --release-notes=/tmp/release.txt --skip-validate --rm-dist

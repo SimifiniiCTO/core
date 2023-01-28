@@ -28,6 +28,7 @@ message EmailMessage {
   string firstName = 6;
   string lastName = 7;
   string verificationAddress = 8;
+  string userID = 9;
 }
 
 message EmailContract {

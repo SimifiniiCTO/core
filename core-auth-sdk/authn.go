@@ -182,6 +182,21 @@ func (ac *Client) ServerStats() (*http.Response, error) {
 	return ac.iclient.ServerStats()
 }
 
+// RequestPasswordReset initiates a password reset request
+func (ac *Client) RequestPasswordReset(username string) error {
+	return ac.iclient.RequestPasswordReset(username)
+}
+
+// ResetPassword resets a password based on the provided token
+func (ac *Client) ResetPassword(password, token string) (string, error) {
+	return ac.iclient.ResetPassword(password, token)
+}
+
+// ChangePassword attempts to change a password while authenticated
+func (ac *Client) ChangePassword(neswPassword, oldPassword string) (string, error) {
+	return ac.iclient.ChangePassword(neswPassword, oldPassword)
+}
+
 // DefaultClient can be initialized by Configure and used by SubjectFrom.
 var DefaultClient *Client
 

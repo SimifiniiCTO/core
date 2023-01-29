@@ -245,7 +245,16 @@ func (ic *internalClient) ExpirePassword(id string) error {
 
 // RequestPasswordReset initiates a password reset request
 func (ic *internalClient) RequestPasswordReset(username string) error {
-	_, err := ic.doWithNoAuth(get, "password/reset?username="+username, nil)
+	baseUri := "password/reset"
+	req, err := retryablehttp.NewRequest(get, ic.absoluteURL(baseUri), nil)
+	if err != nil {
+		return err
+	}
+
+	q := req.URL.Query()          // Get a copy of the query values.
+	q.Add("username", username)   // Add a new value to the set.
+	req.URL.RawQuery = q.Encode() // Encode and assign back to the original query.
+	_, err = ic.doWithNoAuthAndRequest(req)
 	return err
 }
 
@@ -343,6 +352,27 @@ func (ic *internalClient) get(path string, dest interface{}) (int, error) {
 		return resp.StatusCode, err
 	}
 	return resp.StatusCode, nil
+}
+
+func (ic *internalClient) doWithNoAuthAndRequest(req *retryablehttp.Request) (*http.Response, error) {
+	resp, err := ic.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isStatusSuccess(resp.StatusCode) {
+		// try to parse the error response
+		var errResp ErrorResponse
+		if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
+			return nil, fmt.Errorf("received %d from %s", resp.StatusCode, ic.absoluteURL(req.URL.Path))
+		}
+
+		errResp.StatusCode = resp.StatusCode
+		errResp.URL = ic.absoluteURL(req.URL.Path)
+		return nil, &errResp
+	}
+
+	return resp, nil
 }
 
 func (ic *internalClient) doWithAuth(verb string, path string, body io.Reader) (*http.Response, error) {

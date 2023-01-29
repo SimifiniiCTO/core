@@ -245,8 +245,7 @@ func (ic *internalClient) ExpirePassword(id string) error {
 
 // RequestPasswordReset initiates a password reset
 func (ic *internalClient) RequestPasswordReset(username string) error {
-	passwordResetUrl := fmt.Sprintf("password/reset?username=%s", username)
-	_, err := ic.doWithNoAuth(get, passwordResetUrl, nil)
+	_, err := ic.doWithNoAuth(get, "password/reset?username="+username, nil)
 	return err
 }
 

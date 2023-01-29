@@ -254,7 +254,6 @@ func (ic *internalClient) RequestPasswordReset(username string) error {
 	q := req.URL.Query()          // Get a copy of the query values.
 	q.Add("username", username)   // Add a new value to the set.
 	req.URL.RawQuery = q.Encode() // Encode and assign back to the original query.
-	req.Header.Set("Origin", ic.origin)
 
 	_, err = ic.doWithNoAuthAndRequest(req)
 	return err
@@ -357,6 +356,7 @@ func (ic *internalClient) get(path string, dest interface{}) (int, error) {
 }
 
 func (ic *internalClient) doWithNoAuthAndRequest(req *retryablehttp.Request) (*http.Response, error) {
+	req.Header.Set("Origin", ic.origin)
 	resp, err := ic.client.Do(req)
 	if err != nil {
 		return nil, err

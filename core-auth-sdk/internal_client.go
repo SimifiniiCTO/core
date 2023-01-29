@@ -413,6 +413,7 @@ func (ic *internalClient) doWithNoAuth(verb string, path string, body io.Reader)
 		return nil, err
 	}
 
+	req.Header.Set("Origin", ic.origin)
 	if verb == post || verb == patch || verb == put {
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}

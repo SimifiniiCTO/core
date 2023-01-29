@@ -243,7 +243,7 @@ func (ic *internalClient) ExpirePassword(id string) error {
 	return err
 }
 
-// RequestPasswordReset initiates a password reset
+// RequestPasswordReset initiates a password reset request
 func (ic *internalClient) RequestPasswordReset(username string) error {
 	_, err := ic.doWithNoAuth(get, "password/reset?username="+username, nil)
 	return err

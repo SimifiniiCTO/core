@@ -80,6 +80,7 @@ func NewClient(params *ClientParams) (SqsQueueHandle, error) {
 		ReadTimeout:  *params.ReadOperationTimeout,
 		WriteTimeout: *params.WriteOperationTimeout,
 		Config:       &HandleConfig{MaxNumberOfMessages: params.MaxNumberOfMessagesToIngest, MaxWaitTimeSeconds: params.ReadOperationTimeout, Attributes: params.Attributes},
+		QueueUrls:    params.Urls,
 	}, nil
 }
 

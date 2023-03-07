@@ -7,15 +7,49 @@
 package metrics
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 type Telemetry struct {
-	Engine  *MetricsEngine
-	Metrics *ServiceMetrics
+	Engine *MetricsEngine
+}
+
+type ServiceTelemetry interface {
+	// ErrorCountUnaryServerInterceptor Create new unary server interceptor to capture number of errors.
+	ErrorCountUnaryServerInterceptor() grpc.UnaryServerInterceptor
+	// ErrorCountStreamServerInterceptor Create new stream server interceptor to capture error count over time.
+	ErrorCountStreamServerInterceptor() grpc.StreamServerInterceptor
+	// RequestLatencyUnaryServerInterceptor Create new unary server interceptor to capture request latency over time.
+	RequestLatencyUnaryServerInterceptor() grpc.UnaryServerInterceptor
+	// RequestLatencyStreamServerInterceptor Create new stream server interceptor to capture request latency over time.
+	RequestLatencyStreamServerInterceptor() grpc.StreamServerInterceptor
+	// RequestCountUnaryServerInterceptor Create new unary server interceptor to capture request count over time.
+	RequestCountUnaryServerInterceptor() grpc.UnaryServerInterceptor
+	// RequestCountStreamServerInterceptor Create new stream server interceptor to capture request count over time.
+	RequestCountStreamServerInterceptor() grpc.StreamServerInterceptor
+	// RequestTimeUnaryServerInterceptor Create new unary server interceptor to capture request time.
+	RequestTimeUnaryServerInterceptor() grpc.UnaryServerInterceptor
+	// RequestTimeStreamServerInterceptor Create new stream server interceptor to capture request time.
+	RequestTimeStreamServerInterceptor() grpc.StreamServerInterceptor
+	// TxnUnaryServerInterceptor Create new unary server interceptor to propagate the transaction across requests automatically.
+	TxnUnaryServerInterceptor() grpc.UnaryServerInterceptor
+	// TxnStreamServerInterceptor Create new stream server interceptor to propagate the transaction across requests automatically.
+	TxnStreamServerInterceptor() grpc.StreamServerInterceptor
+	// NewTransaction Create new transaction for the given service call
+	NewTransaction(ctx context.Context, meta *TxMetadata) *newrelic.Transaction
+	// New Segment Create new segment for the given service call
+	NewSegment(txn *newrelic.Transaction, meta *TxMetadata) *newrelic.Segment
+	// TxFromContext returns a transaction from the context if it exists, otherwise it creates a new transaction
+	TxFromContext(ctx context.Context, meta *TxMetadata, sdk *newrelic.Application) *newrelic.Transaction
+	// SpanName returns a formatted span name
+	SpanName(meta *TxMetadata) string
+	// TxName returns a formatted transaction name
+	TxName(meta *TxMetadata) string
 }
 
 type TelemetryParams struct {
@@ -49,8 +83,7 @@ func New(params *TelemetryParams) (*Telemetry, error) {
 	}
 
 	return &Telemetry{
-		Metrics: engine.Metrics,
-		Engine:  engine,
+		Engine: engine,
 	}, nil
 
 }

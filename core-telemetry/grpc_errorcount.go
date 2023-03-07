@@ -20,7 +20,10 @@ import (
 // ErrorCountUnaryServerInterceptor Create new unary server interceptor to capture number of errors.
 func (c *Telemetry) ErrorCountUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		var opStatusCode codes.Code = codes.OK
+		var (
+			opStatusCode   codes.Code = codes.OK
+			serviceMetrics            = c.Engine.Metrics
+		)
 
 		ctx = rkgrpcmid.WrapContextForServer(ctx)
 		method, path, _, _ := rkgrpcmid.GetGwInfo(rkgrpcctx.GetIncomingHeaders(ctx))
@@ -28,28 +31,35 @@ func (c *Telemetry) ErrorCountUnaryServerInterceptor() grpc.UnaryServerIntercept
 
 		if err != nil {
 			opStatusCode = codes.Internal
-			c.Engine.recordCounterMetric(c.Metrics.ErrorCountMetric, fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
+			if c.Engine.enabled {
+				c.Engine.recordCounterMetric(serviceMetrics.ErrorCountMetric, fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
+			}
 		}
 
 		return resp, err
 	}
 }
 
-// ErrorCountStreamServerInterceptor Create new stream server interceptor to capture request latency.
+// ErrorCountStreamServerInterceptor Create new stream server interceptor to capture error count over time.
 func (c *Telemetry) ErrorCountStreamServerInterceptor() grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		// Before invoking
 		wrappedStream := rkgrpcctx.WrapServerStream(stream)
 		wrappedStream.WrappedContext = rkgrpcmid.WrapContextForServer(wrappedStream.WrappedContext)
 
-		var opStatusCode codes.Code = codes.OK
+		var (
+			opStatusCode   codes.Code = codes.OK
+			serviceMetrics            = c.Engine.Metrics
+		)
 
 		method, path, _, _ := rkgrpcmid.GetGwInfo(rkgrpcctx.GetIncomingHeaders(wrappedStream.WrappedContext))
 		err := handler(srv, wrappedStream)
 
 		if err != nil {
 			opStatusCode = codes.Internal
-			c.Engine.recordCounterMetric(c.Metrics.ErrorCountMetric, fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
+			if c.Engine.enabled {
+				c.Engine.recordCounterMetric(serviceMetrics.ErrorCountMetric, fmt.Sprintf("%s-%s", method, path), code.Code(opStatusCode))
+			}
 		}
 
 		return err

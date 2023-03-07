@@ -17,21 +17,27 @@ import (
 
 // TxnUnaryServerInterceptor Create new unary server interceptor and passes txn via context.
 func (c *Telemetry) TxnUnaryServerInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		var txn *newrelic.Transaction
-		ctx = rkgrpcmid.WrapContextForServer(ctx)
-		method, path, _, _ := rkgrpcmid.GetGwInfo(rkgrpcctx.GetIncomingHeaders(ctx))
-
-		value := ctx.Value(TransactionContextKey)
-		if value == nil {
-			txn = c.Engine.Client.StartTransaction(method + " " + path)
-		} else {
-			txn = value.(*newrelic.Transaction)
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		if !c.Engine.enabled {
+			// telemetry is disabled, execute handler directly
+			return handler(ctx, req)
 		}
 
-		defer txn.End()
+		// add middleware to context
+		ctx = rkgrpcmid.WrapContextForServer(ctx)
 
-		ctx = context.WithValue(ctx, TransactionContextKey, txn)
+		// extract request metadata
+		method, path, _, _ := rkgrpcmid.GetGwInfo(rkgrpcctx.GetIncomingHeaders(ctx))
+
+		// create New Relic transaction
+		txn := newrelic.FromContext(ctx)
+		if txn == nil {
+			txn = c.Engine.Client.StartTransaction(method + " " + path)
+			defer txn.End()
+			ctx = newrelic.NewContext(ctx, txn)
+		}
+
+		// execute handler and return response
 		return handler(ctx, req)
 	}
 }
@@ -40,23 +46,25 @@ func (c *Telemetry) TxnUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 func (c *Telemetry) TxnStreamServerInterceptor() grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		// Before invoking
-		var txn *newrelic.Transaction
+		if !c.Engine.enabled {
+			// telemetry is disabled, execute handler directly
+			return handler(srv, stream)
+		}
 
 		wrappedStream := rkgrpcctx.WrapServerStream(stream)
 		wrappedStream.WrappedContext = rkgrpcmid.WrapContextForServer(wrappedStream.WrappedContext)
-
+		
+		// attempt to get txn from context
 		method, path, _, _ := rkgrpcmid.GetGwInfo(rkgrpcctx.GetIncomingHeaders(wrappedStream.WrappedContext))
-		value := wrappedStream.WrappedContext.Value(TransactionContextKey)
-
-		if value == nil {
+		txn := newrelic.FromContext(wrappedStream.WrappedContext)
+		if txn == nil {
+			// create a new txn if one does not already exist
 			txn = c.Engine.Client.StartTransaction(method + " " + path)
-			defer txn.End()
-		} else {
-			txn = value.(*newrelic.Transaction)
-			txn.End()
 		}
 
-		wrappedStream.WrappedContext = context.WithValue(wrappedStream.WrappedContext, TransactionContextKey, txn)
+		defer txn.End()
+
+		wrappedStream.WrappedContext = newrelic.NewContext(wrappedStream.WrappedContext, txn)
 		return handler(srv, wrappedStream)
 	}
 }
